@@ -33,10 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.getElementById('searchInput');
         const languageFilter = document.getElementById('languageFilter');
         const genreFilter = document.getElementById('genreFilter');
+        const sortFilter = document.getElementById('sortFilter');
 
         if (searchInput) searchInput.addEventListener('input', fetchMovies);
         if (languageFilter) languageFilter.addEventListener('change', fetchMovies);
         if (genreFilter) genreFilter.addEventListener('change', fetchMovies);
+        if (sortFilter) sortFilter.addEventListener('change', fetchMovies);
     }
 
     // Movie details page
@@ -134,11 +136,13 @@ async function fetchMovies() {
     const searchInput = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
     const languageFilter = document.getElementById('languageFilter') ? document.getElementById('languageFilter').value : '';
     const genreFilter = document.getElementById('genreFilter') ? document.getElementById('genreFilter').value : '';
+    const sortFilter = document.getElementById('sortFilter') ? document.getElementById('sortFilter').value : '';
 
     const query = new URLSearchParams();
     if (searchInput) query.append('search', searchInput);
     if (languageFilter) query.append('language', languageFilter);
     if (genreFilter) query.append('genre', genreFilter);
+    if (sortFilter) query.append('sort', sortFilter);
 
     try {
         const url = `http://localhost:5001/api/movies?${query.toString()}`;
@@ -180,15 +184,40 @@ async function fetchMovies() {
     }
 }
 
+async function fetchUserMovieStatus(movieId) {
+    const token = localStorage.getItem('token');
+    if (!token) return { inWatchlist: false, watched: false, userReview: null };
+    let inWatchlist = false;
+    let watched = false;
+    let userReview = null;
+    try {
+        // Fetch watchlist
+        const watchlistRes = await fetch('http://localhost:5001/api/watchlist', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const watchlist = await watchlistRes.json();
+        inWatchlist = watchlist.some(item => item.movieId && item.movieId._id === movieId);
+        // Fetch watched
+        const watchedRes = await fetch('http://localhost:5001/api/watched', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const watchedList = await watchedRes.json();
+        const watchedEntry = watchedList.find(item => item.movieId && item.movieId._id === movieId);
+        watched = !!watchedEntry;
+        userReview = watchedEntry || null;
+    } catch (e) {
+        // ignore
+    }
+    return { inWatchlist, watched, userReview };
+}
+
 async function fetchMovieDetails() {
     const urlParams = new URLSearchParams(window.location.search);
     const movieId = urlParams.get('id');
     if (!movieId) {
-        console.warn('No movie ID provided in URL');
         document.getElementById('movieDetails').innerHTML = '<p>No movie ID provided.</p>';
         return;
     }
-
     try {
         const response = await fetch(`http://localhost:5001/api/movies/${movieId}`, {
             method: 'GET',
@@ -201,16 +230,52 @@ async function fetchMovieDetails() {
             throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`);
         }
         const movie = await response.json();
-
         document.getElementById('moviePoster').src = movie.poster || 'https://via.placeholder.com/200x300?text=No+Poster';
         document.getElementById('movieTitle').textContent = movie.title;
         document.getElementById('movieYear').textContent = movie.releaseYear || 'N/A';
         document.getElementById('movieLanguage').textContent = movie.language || 'N/A';
         document.getElementById('movieGenres').textContent = movie.genres.join(', ') || 'N/A';
         document.getElementById('movieSynopsis').textContent = movie.synopsis || 'No synopsis available.';
-        console.log('Movie details loaded:', movie.title);
+
+        // --- New: Update UI for watchlist/watched state ---
+        const { inWatchlist, watched, userReview } = await fetchUserMovieStatus(movieId);
+        const trackingAction = document.getElementById('trackingAction');
+        const watchedForm = document.getElementById('watchedForm');
+        const submitWatchlist = document.getElementById('submitWatchlist');
+        const submitWatched = document.getElementById('submitWatched');
+        const trackingStatus = document.getElementById('trackingStatus');
+        trackingStatus.innerHTML = '';
+        if (watched) {
+            trackingAction.value = 'watched';
+            watchedForm.style.display = 'block';
+            submitWatched.disabled = true;
+            submitWatchlist.style.display = 'none';
+            trackingStatus.innerHTML = '<div style="color:green;">You have already watched this movie.</div>';
+            if (userReview) {
+                document.getElementById('rating').value = userReview.rating || '';
+                document.getElementById('reviewText').value = userReview.reviewText || '';
+                document.getElementById('rating').disabled = true;
+                document.getElementById('reviewText').disabled = true;
+            }
+        } else if (inWatchlist) {
+            trackingAction.value = 'to-watch';
+            watchedForm.style.display = 'none';
+            submitWatchlist.style.display = 'block';
+            submitWatchlist.disabled = true;
+            submitWatched.disabled = false;
+            document.getElementById('rating').disabled = false;
+            document.getElementById('reviewText').disabled = false;
+            trackingStatus.innerHTML = '<div style="color:blue;">Added to Watchlist</div>';
+        } else {
+            trackingAction.value = '';
+            watchedForm.style.display = 'none';
+            submitWatchlist.style.display = 'none';
+            submitWatchlist.disabled = false;
+            submitWatched.disabled = false;
+            document.getElementById('rating').disabled = false;
+            document.getElementById('reviewText').disabled = false;
+        }
     } catch (error) {
-        console.error('Error fetching movie details:', error);
         document.getElementById('movieDetails').innerHTML = '<p>Error loading movie details. Please try again.</p>';
     }
 }
@@ -310,14 +375,9 @@ function setupTrackingActions() {
 async function fetchReviews() {
     const movieId = new URLSearchParams(window.location.search).get('id');
     const reviewsList = document.getElementById('reviewsList');
-
-    if (!reviewsList) {
-        console.warn('reviewsList element not found');
-        return;
-    }
-
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!reviewsList) return;
     try {
-        console.log('Fetching reviews for movie:', movieId);
         const response = await fetch(`http://localhost:5001/api/reviews/${movieId}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -326,26 +386,24 @@ async function fetchReviews() {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const reviews = await response.json();
-
         reviewsList.innerHTML = '';
         if (reviews.length === 0) {
             reviewsList.innerHTML = '<p>No reviews yet.</p>';
             return;
         }
-
         reviews.forEach(review => {
+            const isUser = user && (review.userId._id === user.id || review.userId._id === user.userId);
             const reviewDiv = document.createElement('div');
             reviewDiv.classList.add('review');
+            if (isUser) reviewDiv.style.background = '#e6ffe6';
             reviewDiv.innerHTML = `
-                <p><strong>${review.userId.name}</strong>: ${review.rating}/10</p>
+                <p><strong>${review.userId.name}${isUser ? ' (You)' : ''}</strong>: ${review.rating}/10</p>
                 <p>${review.reviewText || 'No review text.'}</p>
                 <p><small>${new Date(review.createdAt).toLocaleDateString()}</small></p>
             `;
             reviewsList.appendChild(reviewDiv);
         });
-        console.log('Reviews loaded:', reviews.length);
     } catch (error) {
-        console.error('Error fetching reviews:', error);
         reviewsList.innerHTML = '<p>Error loading reviews. Please try again.</p>';
     }
 }

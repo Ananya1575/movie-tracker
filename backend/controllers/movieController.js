@@ -2,14 +2,21 @@ const Movie = require('../models/Movie');
 
 const getMovies = async (req, res) => {
   try {
-    const { language, genre, search } = req.query;
+    const { language, genre, search, sort } = req.query;
     let query = {};
 
     if (language) query.language = language;
     if (genre) query.genres = { $in: [genre] };
     if (search) query.title = { $regex: search, $options: 'i' };
 
-    const movies = await Movie.find(query);
+    let sortOption = {};
+    if (sort === 'newest') sortOption.releaseYear = -1;
+    else if (sort === 'oldest') sortOption.releaseYear = 1;
+    else if (sort === 'a-z') sortOption.title = 1;
+    else if (sort === 'z-a') sortOption.title = -1;
+    else sortOption.releaseYear = -1;
+
+    const movies = await Movie.find(query).sort(sortOption);
     res.json(movies);
   } catch (error) {
     console.error('Error in getMovies:', error);
