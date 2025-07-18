@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth.js');
 const movieRoutes = require('./routes/movies.js');
 const reviewRoutes = require('./routes/reviews.js');
 const watchlistRoutes = require('./routes/watchlist.js');
+const watchedRoutes = require('./routes/watched.js');
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/watched', watchedRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello from the backend!');
