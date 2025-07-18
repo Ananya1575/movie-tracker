@@ -10,11 +10,10 @@ const getMovies = async (req, res) => {
     if (search) query.title = { $regex: search, $options: 'i' };
 
     let sortOption = {};
-    if (sort === 'newest') sortOption.releaseYear = -1;
-    else if (sort === 'oldest') sortOption.releaseYear = 1;
+    if (sort === 'oldest') sortOption.releaseYear = 1;
     else if (sort === 'a-z') sortOption.title = 1;
     else if (sort === 'z-a') sortOption.title = -1;
-    else sortOption.releaseYear = -1;
+    else sortOption.title = 1;
 
     const movies = await Movie.find(query).sort(sortOption);
     res.json(movies);
