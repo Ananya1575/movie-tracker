@@ -6,7 +6,7 @@ const getMovies = async (req, res) => {
     let query = {};
 
     if (language) query.language = language;
-    if (genre) query.genres = genre;
+    if (genre) query.genres = { $in: [genre] };
     if (search) query.title = { $regex: search, $options: 'i' };
 
     const movies = await Movie.find(query);

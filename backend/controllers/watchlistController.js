@@ -2,7 +2,7 @@ const Watchlist = require('../models/Watchlist');
 
 const addToWatchlist = async (req, res) => {
   const { movieId } = req.body;
-  const userId = req.user.id;
+  const userId = req.user.userId;
 
   try {
     const existing = await Watchlist.findOne({ userId, movieId });
@@ -18,7 +18,7 @@ const addToWatchlist = async (req, res) => {
 };
 
 const getWatchlist = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
 
   try {
     const watchlist = await Watchlist.find({ userId }).populate('movieId');
@@ -30,7 +30,7 @@ const getWatchlist = async (req, res) => {
 
 const removeFromWatchlist = async (req, res) => {
   const { movieId } = req.params;
-  const userId = req.user.id;
+  const userId = req.user.userId;
 
   try {
     await Watchlist.deleteOne({ userId, movieId });
