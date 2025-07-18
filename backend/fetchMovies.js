@@ -26,6 +26,15 @@ const languageMap = {
   'ml': 'Malayalam'
 };
 
+const tmdbLocaleMap = {
+  'en': 'en-US',
+  'hi': 'hi-IN',
+  'kn': 'kn-IN',
+  'te': 'te-IN',
+  'ta': 'ta-IN',
+  'ml': 'ml-IN'
+};
+
 // Delay function to respect TMDB rate limits
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -35,7 +44,7 @@ async function fetchMoviesFromTMDB(language, genre, page, retries = 3) {
     const response = await axios.get(`${BASE_URL}/discover/movie`, {
       params: {
         api_key: TMDB_API_KEY,
-        language: 'en-US',
+        language: tmdbLocaleMap[language] || 'en-US',
         with_original_language: language,
         with_genres: genre,
         page: page,
@@ -91,11 +100,11 @@ async function fetchAndStoreMovies() {
 
           const movieData = mapTMDBMovieToSchema(movie);
           try {
-            const existingMovie = await Movie.findOne({ tmdbId: movieData.tmdbId });
+            const existingMovie = await Movie.findOne({ tmdbId: movieData.tmdbId, language: movieData.language });
             if (!existingMovie) {
               await Movie.create(movieData);
               totalMoviesFetched++;
-              console.log(`Stored movie: ${movieData.title}`);
+              console.log(`Stored movie: ${movieData.title} (${movieData.language})`);
             }
           } catch (error) {
             console.error(`Error storing movie ${movieData.title}:`, error.message);
