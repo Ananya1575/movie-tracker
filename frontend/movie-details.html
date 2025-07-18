@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Tracker - Movie Details</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Movie Tracker & Recommendation</h1>
+        <nav id="nav">
+            
+        </nav>
+    </header>
+    <main>
+        <section class="movie-details">
+            <div class="movie-info" id="movieDetails">
+                <img id="moviePoster" src="" alt="Movie Poster">
+                <div class="movie-text">
+                    <h2 id="movieTitle"></h2>
+                    <p><strong>Year:</strong> <span id="movieYear"></span></p>
+                    <p><strong>Language:</strong> <span id="movieLanguage"></span></p>
+                    <p><strong>Genres:</strong> <span id="movieGenres"></span></p>
+                    <p><strong>Synopsis:</strong> <span id="movieSynopsis"></span></p>
+                </div>
+            </div>
+            <div class="tracking-section">
+                <select id="trackingAction">
+                    <option value="">Select Action</option>
+                    <option value="watched">Mark as Watched</option>
+                    <option value="to-watch">Add to Watchlist</option>
+                </select>
+                <div id="watchedForm" style="display: none;">
+                    <input type="number" id="rating" min="1" max="10" placeholder="Rating (1-10)">
+                    <textarea id="reviewText" placeholder="Write your review..."></textarea>
+                    <button id="submitWatched">Submit Review</button>
+                </div>
+                <button id="submitWatchlist" style="display: none;">Add to Watchlist</button>
+            </div>
+        </section>
+        <section class="reviews-section">
+            <h2>Reviews</h2>
+            <div id="reviewsList"></div>
+        </section>
+    </main>
+    <footer>
+        <p>© 2025 Movie Tracker</p>
+    </footer>
+    <script src="js/main.js"></script>
+</body>
+</html>

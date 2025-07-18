@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Tracker - Movies</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Movie Tracker & Recommendation</h1>
+        <nav id="nav">
+            <!-- Navigation links will be dynamically updated by main.js -->
+        </nav>
+    </header>
+    <main>
+        <section class="movie-filter">
+            <input type="text" id="searchInput" placeholder="Search movies...">
+            <select id="languageFilter">
+                <option value="">All Languages</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Spanish">Spanish</option>
+            </select>
+            <select id="genreFilter">
+                <option value="">All Genres</option>
+                <option value="Action">Action</option>
+                <option value="Comedy">Comedy</option>
+                <option value="Drama">Drama</option>
+                <option value="Sci-Fi">Sci-Fi</option>
+            </select>
+        </section>
+        <section class="movie-grid" id="movieGrid">
+            <!-- Movies will be dynamically loaded here -->
+        </section>
+    </main>
+    <footer>
+        <p>© 2025 Movie Tracker</p>
+    </footer>
+    <script src="js/main.js"></script>
+</body>
+</html>

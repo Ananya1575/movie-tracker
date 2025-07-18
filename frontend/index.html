@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Tracker & Recommendation</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Movie Tracker & Recommendation</h1>
+        <nav id="nav">
+            <!-- Navigation links will be dynamically updated by main.js -->
+        </nav>
+    </header>
+    <main>
+        <section class="hero">
+            <h2>Welcome to Movie Tracker</h2>
+            <p>Track, review, and get personalized movie recommendations. Sign up or log in to start exploring!</p>
+            <div class="cta-buttons">
+                <a href="signup.html" class="btn signup-link">Get Started</a>
+                <a href="login.html" class="btn login-link">Login</a>
+            </div>
+        </section>
+        <button id="chatbotButton">Ask Movie Bot</button>
+        <div id="chatbot" style="display: none;">
+            <h3>Movie Bot</h3>
+            <input type="text" id="chatbotInput" placeholder="Ask about movies...">
+            <button id="chatbotSubmit">Send</button>
+            <div id="chatbotResponse"></div>
+        </div>
+    </main>
+    <footer>
+        <p>© 2025 Movie Tracker</p>
+    </footer>
+    <script src="js/main.js"></script>
+</body>
+</html>
