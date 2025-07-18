@@ -252,42 +252,52 @@ nav a:hover {
     background-color: #f9f9f9;
 }
 
+/* Chatbot Styles */
 #chatbotButton {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 0.75rem 1.5rem;
+    bottom: 30px;
+    right: 30px;
     background-color: #007BFF;
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     cursor: pointer;
-    transition: background-color 0.3s;
+    z-index: 1000;
+    transition: background 0.3s;
 }
-
 #chatbotButton:hover {
     background-color: #0056b3;
 }
-
 #chatbot {
     position: fixed;
-    bottom: 60px;
-    right: 20px;
-    width: 300px;
-    background-color: #fff;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    bottom: 100px;
+    right: 30px;
+    width: 320px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.2);
     padding: 1rem;
+    display: none;
+    z-index: 1001;
 }
-
+#chatbot h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #007BFF;
+    text-align: center;
+}
 #chatbot input {
     width: 100%;
     padding: 0.5rem;
     margin-bottom: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 5px;
+    font-size: 1rem;
 }
-
 #chatbot button {
     width: 100%;
     padding: 0.5rem;
@@ -295,17 +305,36 @@ nav a:hover {
     color: #fff;
     border: none;
     border-radius: 5px;
+    font-size: 1rem;
     cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: background 0.3s;
 }
-
 #chatbot button:hover {
     background-color: #0056b3;
 }
-
 #chatbotResponse {
-    margin-top: 1rem;
+    min-height: 40px;
+    background: #f4f4f4;
+    border-radius: 5px;
+    padding: 0.5rem;
+    font-size: 0.95rem;
+    color: #333;
+    margin-top: 0.5rem;
+    white-space: pre-wrap;
     max-height: 200px;
     overflow-y: auto;
+}
+@media (max-width: 600px) {
+    #chatbot {
+        width: 95vw;
+        right: 2.5vw;
+        bottom: 80px;
+    }
+    #chatbotButton {
+        right: 2.5vw;
+        bottom: 20px;
+    }
 }
 
 footer {

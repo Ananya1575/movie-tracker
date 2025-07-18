@@ -12,17 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Token on load:', localStorage.getItem('token'));
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const protectedPages = ['movies.html', 'profile.html', 'movie-details.html'];
+    const publicPages = ['index.html', 'login.html', 'signup.html'];
 
-    if (!isAuthenticated && protectedPages.includes(currentPage)) {
-        console.log(`Unauthenticated user attempting to access ${currentPage}, redirecting to login.html`);
-        window.location.href = 'login.html';
+    // Redirect authenticated users away from public pages
+    if (isAuthenticated && publicPages.includes(currentPage)) {
+        window.location.href = 'movies.html';
         return;
     }
-
-    // Redirect authenticated users away from login/signup pages
-    if (isAuthenticated && (currentPage === 'login.html' || currentPage === 'signup.html')) {
-        console.log('Authenticated user, redirecting to movies.html');
-        window.location.href = 'movies.html';
+    // Redirect unauthenticated users away from protected pages
+    if (!isAuthenticated && protectedPages.includes(currentPage)) {
+        window.location.href = 'index.html';
         return;
     }
 
@@ -96,7 +95,6 @@ function updateNavigation() {
 
     nav.innerHTML = isAuthenticated
         ? `
-            <a href="index.html">Home</a>
             <a href="movies.html">Movies</a>
             <a href="profile.html">Profile</a>
             <a href="#" id="logout">Logout</a>
@@ -242,6 +240,9 @@ function setupTrackingActions() {
         }
     });
 
+    // --- Watched Movies: Mark as watched and fetch watched movies ---
+
+    // Update submitWatched to use /api/watched
     submitWatched.addEventListener('click', async () => {
         const movieId = new URLSearchParams(window.location.search).get('id');
         const rating = document.getElementById('rating').value;
@@ -249,15 +250,13 @@ function setupTrackingActions() {
         const token = localStorage.getItem('token');
 
         if (!token) {
-            console.log('No token found, redirecting to login');
-            alert('Please log in to submit a review.');
+            alert('Please log in to mark as watched.');
             window.location.href = 'login.html';
             return;
         }
 
         try {
-            console.log('Submitting review for movie:', movieId);
-            const response = await fetch('http://localhost:5001/api/reviews', {
+            const response = await fetch('http://localhost:5001/api/watched', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -266,13 +265,13 @@ function setupTrackingActions() {
                 body: JSON.stringify({ movieId, rating, reviewText })
             });
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
             }
-            alert('Review submitted successfully!');
+            alert('Marked as watched and review submitted!');
             fetchReviews();
         } catch (error) {
-            console.error('Error submitting review:', error);
-            alert('Error submitting review. Please try again.');
+            alert('Error marking as watched. Please try again.');
         }
     });
 
@@ -519,7 +518,7 @@ async function fetchWatchedMovies() {
 
     try {
         console.log('Fetching watched movies');
-        const response = await fetch('http://localhost:5001/api/reviews/user', {
+        const response = await fetch('http://localhost:5001/api/watched', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -529,29 +528,29 @@ async function fetchWatchedMovies() {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const reviews = await response.json();
+        const watched = await response.json();
 
         watchedMovies.innerHTML = '';
-        if (reviews.length === 0) {
+        if (watched.length === 0) {
             watchedMovies.innerHTML = '<p>No watched movies.</p>';
             return;
         }
 
-        reviews.forEach(review => {
+        watched.forEach(entry => {
+            const movie = entry.movieId;
             const movieCard = document.createElement('div');
             movieCard.classList.add('movie-card');
             movieCard.innerHTML = `
-                <a href="movie-details.html?id=${review.movieId._id}">
-                    <img src="${review.movieId.poster || 'https://via.placeholder.com/200x300?text=No+Poster'}" alt="${review.movieId.title}">
-                    <h3>${review.movieId.title}</h3>
-                    <p>Rating: ${review.rating}/10</p>
+                <a href="movie-details.html?id=${movie._id}">
+                    <img src="${movie.poster || 'https://via.placeholder.com/200x300?text=No+Poster'}" alt="${movie.title}">
+                    <h3>${movie.title}</h3>
+                    <p>Rating: ${entry.rating || 'N/A'}/10</p>
+                    <p>Review: ${entry.reviewText || 'No review.'}</p>
                 </a>
             `;
             watchedMovies.appendChild(movieCard);
         });
-        console.log('Watched movies loaded:', reviews.length);
     } catch (error) {
-        console.error('Error fetching watched movies:', error);
         watchedMovies.innerHTML = '<p>Error loading watched movies. Please try again.</p>';
     }
 }
@@ -605,6 +604,7 @@ async function fetchWatchlist() {
     }
 }
 
+// --- Chatbot: Call backend Gemini AI endpoint ---
 function setupChatbot() {
     const chatbotButton = document.getElementById('chatbotButton');
     const chatbot = document.getElementById('chatbot');
@@ -613,31 +613,36 @@ function setupChatbot() {
     const chatbotResponse = document.getElementById('chatbotResponse');
 
     if (!chatbotButton || !chatbot || !chatbotSubmit || !chatbotInput || !chatbotResponse) {
-        console.warn('Chatbot elements not found on page:', window.location.pathname);
         return;
     }
 
-    console.log('Setting up chatbot');
     chatbotButton.addEventListener('click', () => {
-        console.log('Chatbot button clicked, toggling visibility');
         chatbot.style.display = chatbot.style.display === 'none' ? 'block' : 'none';
     });
 
-    chatbotSubmit.addEventListener('click', () => {
-        const input = chatbotInput.value.toLowerCase();
-        console.log('Chatbot input:', input);
-        let response = 'Sorry, I don’t understand. Try asking about movie recommendations!';
-        if (input.includes('recommend') || input.includes('movie')) {
-            response = 'Try watching "The Shawshank Redemption" (Drama) or "Inception" (Sci-Fi)!';
-        } else if (input.includes('hello') || input.includes('hi')) {
-            response = 'Hi! I’m your movie bot. Ask me for movie recommendations!';
-        } else if (input.includes('action')) {
-            response = 'For action, check out "Mad Max: Fury Road" or "Die Hard"!';
-        } else if (input.includes('comedy')) {
-            response = 'For comedy, try "The Grand Budapest Hotel" or "Superbad"!';
+    chatbotSubmit.addEventListener('click', async () => {
+        chatbotResponse.innerHTML = '<p>Loading recommendations...</p>';
+        const token = localStorage.getItem('token');
+        if (!token) {
+            chatbotResponse.innerHTML = '<p>Please log in to get recommendations.</p>';
+            return;
         }
-        chatbotResponse.innerHTML = `<p>${response}</p>`;
-        chatbotInput.value = '';
-        console.log('Chatbot response:', response);
+        try {
+            const response = await fetch('http://localhost:5001/api/chatbot/recommendations', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+            }
+            const data = await response.json();
+            chatbotResponse.innerHTML = `<pre>${data.recommendations}</pre>`;
+        } catch (error) {
+            chatbotResponse.innerHTML = '<p>Error getting recommendations. Please try again.</p>';
+        }
     });
 }
