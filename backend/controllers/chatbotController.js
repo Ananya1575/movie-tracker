@@ -14,12 +14,14 @@ const getRecommendations = async (req, res) => {
       return res.status(200).json({ message: 'You have not watched any movies yet.' });
     }
     // Prepare user history for prompt
-    const history = watched.map(w => {
-      return `Title: ${w.movieId.title}, Rating: ${w.rating || 'N/A'}, Review: ${w.reviewText || 'N/A'}`;
-    }).join('\n');
+    const history = watched
+      .filter(w => w.movieId && w.movieId.title)
+      .map(w => {
+        return `Title: ${w.movieId.title}, Rating: ${w.rating || 'N/A'}, Review: ${w.reviewText || 'N/A'}`;
+      }).join('\n');
 
     // Compose prompt for Gemini
-    const prompt = `I have watched and rated the following movies:\n${history}\nBased on my preferences, recommend 5 movies from a general movie database. Reply only with the recommendations and a short reason for each.`;
+    const prompt = `I have watched and rated the following movies:\n${history}\nBased on my preferences, recommend 5 movies from a general movie database. Reply only with the recommendations and a short reason for each.dont answer question which is not related to movies`;
 
     // Call Gemini AI
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });

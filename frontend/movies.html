@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Tracker - Movies</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/movies.css">
 </head>
 <body>
     <header>
-        <h1>Movie Tracker & Recommendation</h1>
+        <h1>WarmOven</h1>
         <nav id="nav">
             <!-- Navigation links will be dynamically updated by main.js -->
         </nav>
@@ -16,15 +16,6 @@
     <main>
         <section class="movie-filter">
             <input type="text" id="searchInput" placeholder="Search movies...">
-            <select id="languageFilter">
-                <option value="">All Languages</option>
-                <option value="English">English</option>
-                <option value="Hindi">Hindi</option>
-                <option value="Kannada">Kannada</option>
-                <option value="Telugu">Telugu</option>
-                <option value="Tamil">Tamil</option>
-                <option value="Malayalam">Malayalam</option>
-            </select>
             <select id="genreFilter">
                 <option value="">All Genres</option>
                 <option value="Action">Action</option>
@@ -33,22 +24,20 @@
                 <option value="Documentary">Documentary</option>
                 <option value="Horror">Horror</option>
             </select>
-            <select id="sortFilter">
-                <option value="oldest">Oldest</option>
-                <option value="a-z">A-Z</option>
-                <option value="z-a">Z-A</option>
-            </select>
         </section>
         <section class="movie-grid" id="movieGrid">
             <!-- Movies will be dynamically loaded here -->
         </section>
         <!-- Chatbot UI -->
-        <button id="chatbotButton">Ask Movie Bot</button>
-        <div id="chatbot" style="display: none;">
-            <h3>Movie Bot</h3>
-            <input type="text" id="chatbotInput" placeholder="Ask about movies...">
-            <button id="chatbotSubmit">Send</button>
-            <div id="chatbotResponse"></div>
+        <div id="chatbotContainer">
+            <button id="chatbotButton">Ask Away</button>
+            <div id="chatbot">
+                <button class="close-chatbot" aria-label="Close">&times;</button>
+                <h3>Ask Away</h3>
+                <input type="text" id="chatbotInput" placeholder="Ask about movies...">
+                <button id="chatbotSubmit">Send</button>
+                <div id="chatbotResponse"></div>
+            </div>
         </div>
     </main>
     <script src="js/main.js"></script>

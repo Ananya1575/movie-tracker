@@ -35,6 +35,11 @@ const tmdbLocaleMap = {
   'ml': 'ml-IN'
 };
 
+const today = new Date().toISOString().split('T')[0];
+const minYear = new Date();
+minYear.setFullYear(minYear.getFullYear() - 5); // 8 years ago
+const minDate = minYear.toISOString().split('T')[0];
+
 // Delay function to respect TMDB rate limits
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -49,6 +54,8 @@ async function fetchMoviesFromTMDB(language, genre, page, retries = 3) {
         with_genres: genre,
         page: page,
         include_adult: false,
+        'primary_release_date.gte': minDate,
+        'primary_release_date.lte': today,
       },
     });
     return response.data.results;
@@ -87,6 +94,8 @@ function mapTMDBMovieToSchema(tmdbMovie) {
 
 // Fetch and store movies
 async function fetchAndStoreMovies() {
+  // Clear the Movie collection before fetching
+  await Movie.deleteMany({});
   let totalMoviesFetched = 0;
   for (const language of languages) {
     for (const genre of genres) {

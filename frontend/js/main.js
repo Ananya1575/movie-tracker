@@ -167,13 +167,14 @@ async function fetchMovies() {
         }
 
         movies.forEach(movie => {
-            const movieCard = document.createElement('div');
-            movieCard.classList.add('movie-card');
+            const movieCard = document.createElement('a');
+            movieCard.classList.add('movie-card', 'movie-card-link');
+            movieCard.href = `movie-details.html?id=${movie._id}`;
             movieCard.innerHTML = `
-                <a href="movie-details.html?id=${movie._id}">
-                    <img src="${movie.poster || 'https://via.placeholder.com/200x300?text=No+Poster'}" alt="${movie.title}">
+                <img src="${movie.poster || 'https://via.placeholder.com/200x300?text=No+Poster'}" alt="${movie.title}">
+                <div class="movie-info">
                     <h3>${movie.title}</h3>
-                </a>
+                </div>
             `;
             movieGrid.appendChild(movieCard);
         });
@@ -292,15 +293,14 @@ function setupTrackingActions() {
     }
 
     trackingAction.addEventListener('change', () => {
-        console.log('Tracking action changed:', trackingAction.value);
         if (trackingAction.value === 'watched') {
-            watchedForm.style.display = 'block';
+            watchedForm.classList.add('show');
             submitWatchlist.style.display = 'none';
         } else if (trackingAction.value === 'to-watch') {
-            watchedForm.style.display = 'none';
+            watchedForm.classList.remove('show');
             submitWatchlist.style.display = 'block';
         } else {
-            watchedForm.style.display = 'none';
+            watchedForm.classList.remove('show');
             submitWatchlist.style.display = 'none';
         }
     });
@@ -335,6 +335,7 @@ function setupTrackingActions() {
             }
             alert('Marked as watched and review submitted!');
             fetchReviews();
+            fetchMovieDetails(); // Refresh UI
         } catch (error) {
             alert('Error marking as watched. Please try again.');
         }
@@ -365,6 +366,7 @@ function setupTrackingActions() {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             alert('Movie added to watchlist!');
+            fetchMovieDetails(); // Refresh UI
         } catch (error) {
             console.error('Error adding to watchlist:', error);
             alert('Error adding to watchlist. Please try again.');
@@ -590,7 +592,7 @@ async function fetchWatchedMovies() {
 
         watchedMovies.innerHTML = '';
         if (watched.length === 0) {
-            watchedMovies.innerHTML = '<p>No watched movies.</p>';
+            watchedMovies.innerHTML = '<p>No watched movies. (DEBUG: List is empty)</p>';
             return;
         }
 
@@ -640,11 +642,12 @@ async function fetchWatchlist() {
 
         watchlistMovies.innerHTML = '';
         if (watchlist.length === 0) {
-            watchlistMovies.innerHTML = '<p>No movies in watchlist.</p>';
+            watchlistMovies.innerHTML = '<p>No movies in watchlist. (DEBUG: List is empty)</p>';
             return;
         }
 
         watchlist.forEach(item => {
+            if (!item.movieId || !item.movieId.title) return; // skip invalid
             const movieCard = document.createElement('div');
             movieCard.classList.add('movie-card');
             movieCard.innerHTML = `
@@ -669,14 +672,22 @@ function setupChatbot() {
     const chatbotSubmit = document.getElementById('chatbotSubmit');
     const chatbotInput = document.getElementById('chatbotInput');
     const chatbotResponse = document.getElementById('chatbotResponse');
+    const chatbotContainer = document.getElementById('chatbotContainer');
 
-    if (!chatbotButton || !chatbot || !chatbotSubmit || !chatbotInput || !chatbotResponse) {
+    if (!chatbotButton || !chatbot || !chatbotSubmit || !chatbotInput || !chatbotResponse || !chatbotContainer) {
         return;
     }
 
     chatbotButton.addEventListener('click', () => {
-        chatbot.style.display = chatbot.style.display === 'none' ? 'block' : 'none';
+        chatbotContainer.classList.toggle('open');
     });
+
+    const closeBtn = chatbot.querySelector('.close-chatbot');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            chatbotContainer.classList.remove('open');
+        });
+    }
 
     chatbotSubmit.addEventListener('click', async () => {
         chatbotResponse.innerHTML = '<p>Loading recommendations...</p>';
@@ -704,3 +715,75 @@ function setupChatbot() {
         }
     });
 }
+
+// Add direct review form logic for movie-details page
+if (document.getElementById('movieDetails')) {
+    const reviewsSection = document.querySelector('.reviews-section');
+    let directReviewForm;
+    if (reviewsSection && !document.getElementById('directReviewForm')) {
+        const form = document.createElement('form');
+        form.id = 'directReviewForm';
+        form.style.display = 'none';
+        form.innerHTML = `
+            <h3>Add a Review</h3>
+            <input type="number" id="directRating" min="1" max="10" placeholder="Rating (1-10)" required>
+            <textarea id="directReviewText" placeholder="Write your review..." required></textarea>
+            <button type="submit">Submit Review</button>
+        `;
+        reviewsSection.insertBefore(form, reviewsSection.firstChild);
+        directReviewForm = form;
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const movieId = new URLSearchParams(window.location.search).get('id');
+            const rating = document.getElementById('directRating').value;
+            const reviewText = document.getElementById('directReviewText').value;
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please log in to submit a review.');
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                const response = await fetch('http://localhost:5001/api/reviews', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ movieId, rating, reviewText })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+                }
+                alert('Review submitted successfully!');
+                fetchReviews();
+                form.reset();
+            } catch (error) {
+                alert('Error submitting review. Please try again.');
+            }
+        });
+    } else {
+        directReviewForm = document.getElementById('directReviewForm');
+    }
+    // Toggle review form visibility based on trackingAction
+    const trackingAction = document.getElementById('trackingAction');
+    if (trackingAction && directReviewForm) {
+        trackingAction.addEventListener('change', () => {
+            if (trackingAction.value === 'watched') {
+                directReviewForm.style.display = 'block';
+            } else {
+                directReviewForm.style.display = 'none';
+            }
+        });
+        // Set initial state
+        if (trackingAction.value === 'watched') {
+            directReviewForm.style.display = 'block';
+        } else {
+            directReviewForm.style.display = 'none';
+        }
+    }
+}
+
+// Remove debug border/background for movie-card in profile
+// (No debug CSS injection)
