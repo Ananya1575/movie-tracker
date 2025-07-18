@@ -261,12 +261,12 @@ async function fetchMovieDetails() {
         } else if (inWatchlist) {
             trackingAction.value = 'to-watch';
             watchedForm.style.display = 'none';
-            submitWatchlist.style.display = 'block';
+            submitWatchlist.style.display = 'none';
             submitWatchlist.disabled = true;
             submitWatched.disabled = false;
             document.getElementById('rating').disabled = false;
             document.getElementById('reviewText').disabled = false;
-            trackingStatus.innerHTML = '<div style="color:blue;">Added to Watchlist</div>';
+            trackingStatus.innerHTML = '<div style="color:blue;">In Watchlist - You can mark as watched</div>';
         } else {
             trackingAction.value = '';
             watchedForm.style.display = 'none';
@@ -294,13 +294,13 @@ function setupTrackingActions() {
 
     trackingAction.addEventListener('change', () => {
         if (trackingAction.value === 'watched') {
-            watchedForm.classList.add('show');
+            watchedForm.style.display = 'block';
             submitWatchlist.style.display = 'none';
         } else if (trackingAction.value === 'to-watch') {
-            watchedForm.classList.remove('show');
+            watchedForm.style.display = 'none';
             submitWatchlist.style.display = 'block';
         } else {
-            watchedForm.classList.remove('show');
+            watchedForm.style.display = 'none';
             submitWatchlist.style.display = 'none';
         }
     });
@@ -333,9 +333,9 @@ function setupTrackingActions() {
                 const errorText = await response.text();
                 throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
             }
-            alert('Marked as watched and review submitted!');
+            alert('Movie marked as watched and moved from watchlist!');
             fetchReviews();
-            fetchMovieDetails(); // Refresh UI
+            fetchMovieDetails(); // Refresh UI to show updated status
         } catch (error) {
             alert('Error marking as watched. Please try again.');
         }

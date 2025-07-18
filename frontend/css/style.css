@@ -583,3 +583,66 @@ footer p {
 #chatbot {
   z-index: 9998 !important;
 }
+
+/* Movie Grid Styling for Global Use */
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  opacity: 1;
+  transform: none;
+}
+
+.movie-grid .movie-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.movie-grid .movie-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+}
+
+.movie-grid .movie-card img {
+  width: 100%;
+  height: 240px;
+  object-fit: contain;
+  background: #f8f9fa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.movie-grid .movie-card .movie-info {
+  padding: 1.2rem;
+}
+
+.movie-grid .movie-card h3,
+.movie-grid .movie-card h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+  line-height: 1.3;
+}
+
+.movie-grid .movie-card p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.movie-grid .movie-card a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}

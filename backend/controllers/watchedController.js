@@ -1,4 +1,5 @@
 const Watched = require('../models/Watched');
+const Watchlist = require('../models/Watchlist');
 
 // Mark a movie as watched (with optional rating/review)
 const markAsWatched = async (req, res) => {
@@ -11,8 +12,14 @@ const markAsWatched = async (req, res) => {
     if (existing) {
       return res.status(400).json({ message: 'Movie already marked as watched' });
     }
+    
+    // Create watched entry
     const watched = new Watched({ userId, movieId, rating, reviewText });
     await watched.save();
+    
+    // Remove from watchlist if it exists (atomic operation)
+    await Watchlist.deleteOne({ userId, movieId });
+    
     res.status(201).json(watched);
   } catch (error) {
     res.status(500).json({ message: 'Error marking as watched', error });
